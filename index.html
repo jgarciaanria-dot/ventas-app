@@ -437,8 +437,9 @@ function cerrarPin() {
 function verificarPin() {
   if (pinIngresado.length !== 4) return;
   if (pinIngresado === PIN_CORRECTO) {
+    const destino = vistaDestinoPendiente;
     cerrarPin();
-    if (vistaDestinoPendiente) irAVista(vistaDestinoPendiente);
+    if (destino) irAVista(destino);
   } else {
     document.getElementById('pinError').textContent = 'PIN incorrecto';
     setTimeout(() => {
