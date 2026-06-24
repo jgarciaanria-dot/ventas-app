@@ -141,6 +141,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 .spinner{width:30px;height:30px;border:2.5px solid var(--card-border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .loader-box p{font-size:12px;color:var(--txt-dim);}
+.opt-list-item{padding:13px 14px;border-radius:var(--radius-sm);border:0.5px solid var(--card-border);margin-bottom:8px;cursor:pointer;font-size:14px;color:var(--txt);background:var(--bg);}
+.opt-list-item:active{background:rgba(201,169,110,.12);border-color:var(--gold);}
+.opt-list-item.todas{font-weight:600;color:var(--gold-dark);border-color:var(--gold);background:rgba(201,169,110,.08);}
 </style>
 </head>
 <body>
@@ -199,7 +202,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     </div>
     <div class="fg">
       <label class="flbl">Servicio</label>
-      <select class="fi-select-full" id="vServicio"></select>
+      <button class="fi-select-full" id="btnAbrirServicio" style="text-align:left;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+        <span id="vServicioLabel">Selecciona un servicio</span>
+        <i class="ti ti-chevron-down" aria-hidden="true"></i>
+      </button>
+      <input type="hidden" id="vServicio"/>
     </div>
     <div class="fg">
       <label class="flbl">Nombre del cliente</label>
@@ -368,6 +375,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
   </div>
 </div>
 
+<div class="ov" id="ov-servicio">
+  <div class="panel">
+    <div class="phdr"><span class="ptitle">Selecciona el servicio</span><button class="pclose" onclick="closeOv('ov-servicio')">×</button></div>
+    <div class="pbody" style="padding-top:0.5rem;">
+      <div id="listaServiciosModal"></div>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-cierre-colab">
+  <div class="panel">
+    <div class="phdr"><span class="ptitle">¿A quién cerrar?</span><button class="pclose" onclick="closeOv('ov-cierre-colab')">×</button></div>
+    <div class="pbody" style="padding-top:0.5rem;">
+      <div id="listaCierreColab"></div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <div class="loader-overlay" id="loaderOverlay">
@@ -412,7 +437,6 @@ function cerrarPin() {
 function verificarPin() {
   if (pinIngresado.length !== 4) return;
   if (pinIngresado === PIN_CORRECTO) {
-    sessionStorage.setItem('vss_contab_auth', '1');
     cerrarPin();
     if (vistaDestinoPendiente) irAVista(vistaDestinoPendiente);
   } else {
@@ -441,7 +465,7 @@ document.getElementById('pinDel').addEventListener('click', () => {
 document.getElementById('pinCancel').addEventListener('click', cerrarPin);
 
 function cambiarVista(nombre) {
-  if (VISTAS_PROTEGIDAS.includes(nombre) && sessionStorage.getItem('vss_contab_auth') !== '1') {
+  if (VISTAS_PROTEGIDAS.includes(nombre)) {
     abrirPin(nombre);
     return;
   }
@@ -509,13 +533,21 @@ async function cargarColaboradores() {
 const SERVICIOS_UNAS = ['manicure','manicure semipermanente','pedicura regular','polygel en uña natural','manicura rusa / esmaltado en gel','manicura rusa / rubber / builder','relleno / mantenimiento','pedicura / gel','pedispa / gel','pedispa / regular'];
 
 function renderSelectServicios() {
-  const sel = document.getElementById('vServicio');
   const norm = s => s.toLowerCase().trim();
   const filtrados = CATALOGO_SERVICIOS.filter(s => {
     const esUnas = SERVICIOS_UNAS.includes(norm(s.servicio));
     return categoriaActual === 'unas' ? esUnas : !esUnas;
   });
-  sel.innerHTML = filtrados.map(s => `<option value="${s.servicio}">${s.servicio}</option>`).join('');
+  const cont = document.getElementById('listaServiciosModal');
+  cont.innerHTML = filtrados.map(s => `<div class="opt-list-item" onclick="seleccionarServicio('${s.servicio.replace(/'/g, "\\'")}')">${s.servicio}</div>`).join('');
+  document.getElementById('vServicio').value = '';
+  document.getElementById('vServicioLabel').textContent = 'Selecciona un servicio';
+}
+
+function seleccionarServicio(nombre) {
+  document.getElementById('vServicio').value = nombre;
+  document.getElementById('vServicioLabel').textContent = nombre;
+  closeOv('ov-servicio');
 }
 
 function seleccionarCategoria(el) {
@@ -523,6 +555,14 @@ function seleccionarCategoria(el) {
   el.classList.add('sel');
   categoriaActual = el.dataset.cat;
   renderSelectServicios();
+}
+
+function abrirModalCierreColab() {
+  const cont = document.getElementById('listaCierreColab');
+  let html = '<div class="opt-list-item todas" onclick="ejecutarCierreQuincena(null)">Todas las colaboradoras</div>';
+  html += COLABORADORES.map(c => `<div class="opt-list-item" onclick="ejecutarCierreQuincena('${c.nombre.replace(/'/g, "\\'")}')">${c.nombre}</div>`).join('');
+  cont.innerHTML = html;
+  openOv('ov-cierre-colab');
 }
 
 async function cargarResumen(filtros) {
@@ -669,13 +709,21 @@ async function generarComprobante() {
   hideLoader();
 }
 
-async function cerrarQuincena() {
+function cerrarQuincena() {
+  abrirModalCierreColab();
+}
+
+async function ejecutarCierreQuincena(colaborador) {
+  closeOv('ov-cierre-colab');
   const periodo = document.getElementById('periodoCierre').value;
-  if (!confirm('¿Confirmas cerrar el período ' + periodo + '? Esto enviará los comprobantes y archivará los registros.')) return;
+  const quien = colaborador || 'todas las colaboradoras';
+  if (!confirm('¿Confirmas cerrar el período ' + periodo + ' para ' + quien + '? Esto enviará los comprobantes y archivará los registros.')) return;
 
   showLoader('Cerrando quincena...');
   try {
-    const resultado = await Contabilidad.cerrarQuincena({ periodo });
+    const body = { periodo };
+    if (colaborador) body.colaborador = colaborador;
+    const resultado = await Contabilidad.cerrarQuincena(body);
     showToast('Cierre completado. Comprobantes enviados: ' + resultado.enviados);
     await aplicarFiltrosDashboard();
     await cargarComisionesHistoricas();
@@ -730,6 +778,7 @@ async function initApp() {
   document.getElementById('btnRefreshTop').addEventListener('click', aplicarFiltrosDashboard);
   document.getElementById('btnRegistrarVenta').addEventListener('click', registrarVenta);
   document.getElementById('btnAbrirAdelanto').addEventListener('click', () => openOv('ov-adelanto'));
+  document.getElementById('btnAbrirServicio').addEventListener('click', () => openOv('ov-servicio'));
   document.getElementById('btnGuardarAdelanto').addEventListener('click', guardarAdelanto);
   document.getElementById('btnGenerarComprobante').addEventListener('click', generarComprobante);
   document.getElementById('btnCerrarQuincena').addEventListener('click', cerrarQuincena);
