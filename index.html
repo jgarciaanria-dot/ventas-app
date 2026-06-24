@@ -53,7 +53,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 .fi-select{background:var(--card);border:0.5px solid var(--gold);border-radius:var(--radius-sm);padding:9px 12px;font-size:12px;color:var(--gold-dark);font-family:inherit;}
 .btn-row{display:flex;gap:8px;margin-bottom:1rem;}
 .btn-sm{flex:1;padding:9px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;}
-.btn-sm.primary{background:var(--charcoal);color:var(--gold);}
+.btn-sm.primary{background:var(--gold-light);color:var(--gold-dark);border:0.5px solid var(--gold);}
 .btn-sm.ghost{background:var(--card);color:var(--txt-dim);border:0.5px solid var(--card-border);}
 
 .titulo-rango{font-size:13px;color:var(--txt-dim);margin-bottom:1rem;font-weight:500;}
@@ -144,6 +144,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 .opt-list-item{padding:13px 14px;border-radius:var(--radius-sm);border:0.5px solid var(--card-border);margin-bottom:8px;cursor:pointer;font-size:14px;color:var(--txt);background:var(--bg);}
 .opt-list-item:active{background:rgba(201,169,110,.12);border-color:var(--gold);}
 .opt-list-item.todas{font-weight:600;color:var(--gold-dark);border-color:var(--gold);background:rgba(201,169,110,.08);}
+
+.mov-card{background:var(--card);border:0.5px solid var(--card-border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;}
+.mov-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+.mov-servicio{font-size:13px;font-weight:600;color:var(--txt);}
+.mov-amt{font-size:14px;font-weight:700;color:var(--txt);}
+.mov-amt.neg{color:var(--orange);}
+.mov-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.mov-tag{font-size:10px;color:var(--txt-dim);display:flex;align-items:center;gap:3px;}
+.mov-tag i{font-size:11px;color:var(--gold-dark);}
 </style>
 </head>
 <body>
@@ -242,9 +251,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <input type="date" class="fi-date" id="fechaFin"/>
   </div>
   <div class="filters-row">
-    <select class="fi-select" id="selColaborador" style="flex:1;">
-      <option value="">Todas</option>
-    </select>
+    <button class="fi-select" id="btnAbrirColabFiltro" style="flex:1;text-align:left;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+      <span id="selColaboradorLabel">Todos</span>
+      <i class="ti ti-chevron-down" aria-hidden="true"></i>
+    </button>
+    <input type="hidden" id="selColaborador" value=""/>
   </div>
   <div class="btn-row">
     <button class="btn-sm primary" id="btnAplicarFiltro"><i class="ti ti-filter" aria-hidden="true"></i> Aplicar</button>
@@ -314,14 +325,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
   </div>
 
   <div class="sec-label">Detalle de movimientos</div>
-  <div class="table-wrap">
-    <div class="tbl-row head">
-      <span class="tbl-cell head">Servicio</span>
-      <span class="tbl-cell head">Fecha</span>
-      <span class="tbl-cell head" style="text-align:right;">Monto</span>
-    </div>
-    <div id="tablaDetalle"></div>
-  </div>
+  <div id="tablaDetalle"></div>
 
 </div>
 
@@ -380,6 +384,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <div class="phdr"><span class="ptitle">Selecciona el servicio</span><button class="pclose" onclick="closeOv('ov-servicio')">×</button></div>
     <div class="pbody" style="padding-top:0.5rem;">
       <div id="listaServiciosModal"></div>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-colab-filtro">
+  <div class="panel">
+    <div class="phdr"><span class="ptitle">Filtrar por colaboradora</span><button class="pclose" onclick="closeOv('ov-colab-filtro')">×</button></div>
+    <div class="pbody" style="padding-top:0.5rem;">
+      <div id="listaColabFiltro"></div>
     </div>
   </div>
 </div>
@@ -477,6 +490,12 @@ function irAVista(nombre) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + nombre).classList.add('active');
   document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.view === nombre));
+
+  if (nombre === 'resumen') {
+    aplicarFiltrosDashboard();
+  } else if (nombre === 'equipo') {
+    cargarComisionesHistoricas();
+  }
 }
 
 function showLoader(texto) {
@@ -519,16 +538,28 @@ async function cargarCatalogo() {
 }
 async function cargarColaboradores() {
   COLABORADORES = await Contabilidad.getColaboradores();
-  const selDash = document.getElementById('selColaborador');
   const selVenta = document.getElementById('vColaborador');
   const selAdel = document.getElementById('adColaborador');
-  selDash.innerHTML = '<option value="">Todas</option>';
   selVenta.innerHTML = ''; selAdel.innerHTML = '';
   COLABORADORES.forEach(c => {
-    selDash.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
     selVenta.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
     selAdel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
   });
+  renderListaColabFiltro();
+}
+
+function renderListaColabFiltro() {
+  const cont = document.getElementById('listaColabFiltro');
+  let html = '<div class="opt-list-item todas" onclick="seleccionarColabFiltro(\'\', \'Todos\')">Todos</div>';
+  html += COLABORADORES.map(c => `<div class="opt-list-item" onclick="seleccionarColabFiltro('${c.nombre.replace(/'/g, "\\'")}', '${c.nombre.replace(/'/g, "\\'")}')">${c.nombre}</div>`).join('');
+  cont.innerHTML = html;
+}
+
+function seleccionarColabFiltro(valor, etiqueta) {
+  document.getElementById('selColaborador').value = valor;
+  document.getElementById('selColaboradorLabel').textContent = etiqueta;
+  closeOv('ov-colab-filtro');
+  aplicarFiltrosDashboard();
 }
 
 const SERVICIOS_UNAS = ['manicure','manicure semipermanente','pedicura regular','polygel en uña natural','manicura rusa / esmaltado en gel','manicura rusa / rubber / builder','relleno / mantenimiento','pedicura / gel','pedispa / gel','pedispa / regular'];
@@ -605,12 +636,21 @@ async function cargarDetalle(filtros) {
       cont.innerHTML = '<div class="tbl-empty">No hay movimientos en este rango.</div>';
       return;
     }
-    cont.innerHTML = detalle.map(item => `
-      <div class="tbl-row">
-        <span class="tbl-cell name">${item.servicio || '-'}</span>
-        <span class="tbl-cell">${item.fecha}</span>
-        <span class="tbl-cell amt ${item.monto < 0 ? 'neg' : ''}">${item.monto < 0 ? '-' : ''}$${Math.abs(item.monto).toFixed(2)}</span>
-      </div>`).join('');
+    cont.innerHTML = detalle.map(item => {
+      const esAdelanto = item.servicio === 'Adelanto';
+      return `
+      <div class="mov-card">
+        <div class="mov-top">
+          <span class="mov-servicio">${item.servicio || '-'}</span>
+          <span class="mov-amt ${item.monto < 0 ? 'neg' : ''}">${item.monto < 0 ? '-' : ''}$${Math.abs(item.monto).toFixed(2)}</span>
+        </div>
+        <div class="mov-meta">
+          <span class="mov-tag"><i class="ti ti-user" aria-hidden="true"></i> ${item.empleado || '-'}</span>
+          ${!esAdelanto ? `<span class="mov-tag"><i class="ti ti-users" aria-hidden="true"></i> ${item.cliente || '-'}</span>` : `<span class="mov-tag"><i class="ti ti-note" aria-hidden="true"></i> ${item.cliente || '-'}</span>`}
+          <span class="mov-tag"><i class="ti ti-calendar" aria-hidden="true"></i> ${item.fecha}</span>
+        </div>
+      </div>`;
+    }).join('');
   } catch (e) {
     console.error(e);
   }
@@ -780,6 +820,7 @@ async function initApp() {
   document.getElementById('btnRegistrarVenta').addEventListener('click', registrarVenta);
   document.getElementById('btnAbrirAdelanto').addEventListener('click', () => openOv('ov-adelanto'));
   document.getElementById('btnAbrirServicio').addEventListener('click', () => openOv('ov-servicio'));
+  document.getElementById('btnAbrirColabFiltro').addEventListener('click', () => openOv('ov-colab-filtro'));
   document.getElementById('btnGuardarAdelanto').addEventListener('click', guardarAdelanto);
   document.getElementById('btnGenerarComprobante').addEventListener('click', generarComprobante);
   document.getElementById('btnCerrarQuincena').addEventListener('click', cerrarQuincena);
