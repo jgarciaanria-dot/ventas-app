@@ -1,5 +1,5 @@
 const CONFIG = {
   contabilidad: {
-    scriptUrl: 'https://script.google.com/macros/s/AKfycbwtJee3Cu3DdruUFKzpyN_DQvntEI4voCUUH9VbCMBeUgmJHe9JQodsTRmWQnj0SKv3/exec'
+    scriptUrl: 'https://script.google.com/macros/s/AKfycbzpibYlOa9G3u0QKBg3cmpVGHQHMUzmn9qiUmMHtCwMbCKen6KmCY3EbupFsOlEgYWt/exec'
   }
 };
