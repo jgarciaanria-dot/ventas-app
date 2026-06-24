@@ -207,7 +207,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     </div>
     <div class="fg">
       <label class="flbl">Colaboradora</label>
-      <select class="fi-select-full" id="vColaborador"></select>
+      <button class="fi-select-full" id="btnAbrirColabVenta" style="text-align:left;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+        <span id="vColaboradorLabel">Selecciona una colaboradora</span>
+        <i class="ti ti-chevron-down" aria-hidden="true"></i>
+      </button>
+      <input type="hidden" id="vColaborador"/>
     </div>
     <div class="fg">
       <label class="flbl">Servicio</label>
@@ -227,12 +231,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     </div>
     <div class="fg">
       <label class="flbl">Método de pago</label>
-      <select class="fi-select-full" id="vMetodoPago">
-        <option value="Efectivo">Efectivo</option>
-        <option value="Yappy">Yappy</option>
-        <option value="Transferencia">Transferencia</option>
-        <option value="Tarjeta">Tarjeta</option>
-      </select>
+      <div class="toggle-cat" id="toggleMetodoPago" style="flex-wrap:wrap;">
+        <div class="toggle-opt sel" data-metodo="Efectivo" onclick="seleccionarMetodoPago(this)" style="min-width:45%;">Efectivo</div>
+        <div class="toggle-opt" data-metodo="Yappy" onclick="seleccionarMetodoPago(this)" style="min-width:45%;">Yappy</div>
+        <div class="toggle-opt" data-metodo="Transferencia" onclick="seleccionarMetodoPago(this)" style="min-width:45%;">Transferencia</div>
+        <div class="toggle-opt" data-metodo="Tarjeta" onclick="seleccionarMetodoPago(this)" style="min-width:45%;">Tarjeta</div>
+      </div>
+      <input type="hidden" id="vMetodoPago" value="Efectivo"/>
     </div>
     <div class="fg">
       <label class="flbl">Notas (opcional)</label>
@@ -364,7 +369,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <div class="pbody">
       <div class="fg">
         <label class="flbl">Colaboradora</label>
-        <select class="fi-select-full" id="adColaborador"></select>
+        <button class="fi-select-full" id="btnAbrirColabAdelanto" style="text-align:left;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+          <span id="adColaboradorLabel">Selecciona una colaboradora</span>
+          <i class="ti ti-chevron-down" aria-hidden="true"></i>
+        </button>
+        <input type="hidden" id="adColaborador"/>
       </div>
       <div class="fg">
         <label class="flbl">Monto ($)</label>
@@ -393,6 +402,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <div class="phdr"><span class="ptitle">Filtrar por colaboradora</span><button class="pclose" onclick="closeOv('ov-colab-filtro')">×</button></div>
     <div class="pbody" style="padding-top:0.5rem;">
       <div id="listaColabFiltro"></div>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-colab-venta">
+  <div class="panel">
+    <div class="phdr"><span class="ptitle">Selecciona la colaboradora</span><button class="pclose" onclick="closeOv('ov-colab-venta')">×</button></div>
+    <div class="pbody" style="padding-top:0.5rem;">
+      <div id="listaColabVenta"></div>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-colab-adelanto">
+  <div class="panel">
+    <div class="phdr"><span class="ptitle">Selecciona la colaboradora</span><button class="pclose" onclick="closeOv('ov-colab-adelanto')">×</button></div>
+    <div class="pbody" style="padding-top:0.5rem;">
+      <div id="listaColabAdelanto"></div>
     </div>
   </div>
 </div>
@@ -494,8 +521,17 @@ function irAVista(nombre) {
   if (nombre === 'resumen') {
     aplicarFiltrosDashboard();
   } else if (nombre === 'equipo') {
+    actualizarPeriodoCierre();
     cargarComisionesHistoricas();
   }
+}
+
+function actualizarPeriodoCierre() {
+  const q = quincenaActual();
+  const f = new Date(q.fin);
+  const y = f.getFullYear(), m = String(f.getMonth()+1).padStart(2,'0');
+  const quincenaTag = f.getDate() <= 15 ? 'Q1' : 'Q2';
+  document.getElementById('periodoCierre').value = `${y}-${m} ${quincenaTag}`;
 }
 
 function showLoader(texto) {
@@ -538,14 +574,35 @@ async function cargarCatalogo() {
 }
 async function cargarColaboradores() {
   COLABORADORES = await Contabilidad.getColaboradores();
-  const selVenta = document.getElementById('vColaborador');
-  const selAdel = document.getElementById('adColaborador');
-  selVenta.innerHTML = ''; selAdel.innerHTML = '';
-  COLABORADORES.forEach(c => {
-    selVenta.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-    selAdel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-  });
   renderListaColabFiltro();
+  renderListaColabVenta();
+  renderListaColabAdelanto();
+}
+
+function renderListaColabVenta() {
+  const cont = document.getElementById('listaColabVenta');
+  cont.innerHTML = COLABORADORES.map(c => `<div class="opt-list-item" onclick="seleccionarColabVenta('${c.nombre.replace(/'/g, "\\'")}')">${c.nombre}</div>`).join('');
+}
+function seleccionarColabVenta(nombre) {
+  document.getElementById('vColaborador').value = nombre;
+  document.getElementById('vColaboradorLabel').textContent = nombre;
+  closeOv('ov-colab-venta');
+}
+
+function renderListaColabAdelanto() {
+  const cont = document.getElementById('listaColabAdelanto');
+  cont.innerHTML = COLABORADORES.map(c => `<div class="opt-list-item" onclick="seleccionarColabAdelanto('${c.nombre.replace(/'/g, "\\'")}')">${c.nombre}</div>`).join('');
+}
+function seleccionarColabAdelanto(nombre) {
+  document.getElementById('adColaborador').value = nombre;
+  document.getElementById('adColaboradorLabel').textContent = nombre;
+  closeOv('ov-colab-adelanto');
+}
+
+function seleccionarMetodoPago(el) {
+  document.querySelectorAll('#toggleMetodoPago .toggle-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('vMetodoPago').value = el.dataset.metodo;
 }
 
 function renderListaColabFiltro() {
@@ -692,15 +749,30 @@ async function registrarVenta() {
       costo, metodoPago, notas
     });
     showToast('Venta registrada correctamente');
-    document.getElementById('vCliente').value = '';
-    document.getElementById('vCosto').value = '';
-    document.getElementById('vNotas').value = '';
+    resetFormularioVenta();
   } catch (e) {
     showToast('Error al registrar la venta');
     console.error(e);
   }
 
   btn.disabled = false; btn.textContent = 'Registrar venta';
+}
+
+function resetFormularioVenta() {
+  document.getElementById('vCliente').value = '';
+  document.getElementById('vCosto').value = '';
+  document.getElementById('vNotas').value = '';
+  document.getElementById('vColaborador').value = '';
+  document.getElementById('vColaboradorLabel').textContent = 'Selecciona una colaboradora';
+  document.getElementById('vServicio').value = '';
+  document.getElementById('vServicioLabel').textContent = 'Selecciona un servicio';
+  document.querySelectorAll('.toggle-opt[data-cat]').forEach(o => o.classList.remove('sel'));
+  document.querySelector('.toggle-opt[data-cat="estilismo"]').classList.add('sel');
+  categoriaActual = 'estilismo';
+  renderSelectServicios();
+  document.querySelectorAll('#toggleMetodoPago .toggle-opt').forEach(o => o.classList.remove('sel'));
+  document.querySelector('#toggleMetodoPago .toggle-opt[data-metodo="Efectivo"]').classList.add('sel');
+  document.getElementById('vMetodoPago').value = 'Efectivo';
 }
 
 async function guardarAdelanto() {
@@ -719,6 +791,8 @@ async function guardarAdelanto() {
     closeOv('ov-adelanto');
     document.getElementById('adMonto').value = '';
     document.getElementById('adMotivo').value = '';
+    document.getElementById('adColaborador').value = '';
+    document.getElementById('adColaboradorLabel').textContent = 'Selecciona una colaboradora';
     showToast('Adelanto registrado');
   } catch (e) {
     showToast('Error al registrar adelanto');
@@ -821,6 +895,8 @@ async function initApp() {
   document.getElementById('btnAbrirAdelanto').addEventListener('click', () => openOv('ov-adelanto'));
   document.getElementById('btnAbrirServicio').addEventListener('click', () => openOv('ov-servicio'));
   document.getElementById('btnAbrirColabFiltro').addEventListener('click', () => openOv('ov-colab-filtro'));
+  document.getElementById('btnAbrirColabVenta').addEventListener('click', () => openOv('ov-colab-venta'));
+  document.getElementById('btnAbrirColabAdelanto').addEventListener('click', () => openOv('ov-colab-adelanto'));
   document.getElementById('btnGuardarAdelanto').addEventListener('click', guardarAdelanto);
   document.getElementById('btnGenerarComprobante').addEventListener('click', generarComprobante);
   document.getElementById('btnCerrarQuincena').addEventListener('click', cerrarQuincena);
