@@ -13,6 +13,7 @@
 :root{
   --gold:#C9A96E;--gold-light:#F0DFB8;--gold-dark:#8B6F3E;
   --charcoal:#2E2B2B;
+  --sel:#4D566B;--sel-dark:#363D4D;--sel-light:#DCE0E8;
   --bg:#F7F5F0;--card:#FFFFFF;--card-border:#E8E2D4;
   --txt:#2c2c2a;--txt-dim:#8a8478;--txt-faint:#b8b2a3;
   --radius:14px;--radius-sm:10px;
@@ -104,14 +105,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 .fg{margin-bottom:14px;}
 .flbl{font-size:10px;font-weight:500;color:var(--txt-faint);margin-bottom:6px;display:block;letter-spacing:.06em;text-transform:uppercase;}
 .fi{width:100%;padding:11px 13px;font-size:14px;background:var(--bg);border:0.5px solid var(--card-border);border-radius:var(--radius-sm);color:var(--txt);font-family:inherit;}
-.fi:focus{outline:none;border-color:var(--gold);}
+.fi:focus{outline:none;border-color:var(--sel);}
 .fi-select-full{width:100%;padding:11px 13px;font-size:14px;background:var(--bg);border:0.5px solid var(--card-border);border-radius:var(--radius-sm);color:var(--txt);font-family:inherit;}
 .toggle-cat{display:flex;gap:8px;}
 .toggle-opt{flex:1;padding:12px;text-align:center;border-radius:var(--radius-sm);border:1.5px solid var(--card-border);background:var(--bg);color:var(--txt-dim);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;position:relative;}
-.toggle-opt.sel:not(.pay-card){border-color:var(--gold-dark);background:var(--gold);color:var(--charcoal);font-weight:700;box-shadow:0 2px 6px rgba(201,169,110,.4);}
+.toggle-opt.sel:not(.pay-card){border-color:var(--blue);background:var(--blue-bg);color:#0C447C;font-weight:700;box-shadow:none;}
 .pay-card.toggle-opt.sel{border-width:1.5px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
 .pay-card.toggle-opt.sel .pay-name{font-weight:700;}
-.toggle-opt.sel:not(.pay-card)::after{content:'✓';position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:var(--charcoal);color:var(--gold);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.toggle-opt.sel:not(.pay-card)::after{content:'✓';position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 .btn-main{width:100%;padding:14px;background:var(--gold);color:var(--charcoal);border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;}
 .btn-main:active{transform:scale(.98);}
 .btn-main:disabled{opacity:.5;}
@@ -237,17 +238,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <div class="fg">
       <label class="flbl">Método de pago</label>
       <div class="pay-grid" id="toggleMetodoPago">
-        <div class="pay-card toggle-opt sel" data-metodo="Efectivo" onclick="seleccionarMetodoPago(this)" style="border-left:3px solid #1E9E5A;cursor:pointer;">
-          <div class="pay-top"><div class="pay-icon" style="background:#E3F6EA;"><i class="ti ti-cash-banknote" style="font-size:13px;color:#1E9E5A;" aria-hidden="true"></i></div><span class="pay-name" style="color:#1E9E5A;font-weight:600;">Efectivo</span></div>
+        <div class="pay-card toggle-opt sel" data-metodo="Efectivo" data-bg="#E3F6EA" data-icon-bg="#1E9E5A" data-text="#1E9E5A" onclick="seleccionarMetodoPago(this)" style="background:#E3F6EA;border-left:3px solid #1E9E5A;cursor:pointer;">
+          <div class="pay-top"><div class="pay-icon" style="background:#1E9E5A;"><i class="ti ti-cash-banknote" style="font-size:13px;color:#fff;" aria-hidden="true"></i></div><span class="pay-name" style="color:#1E9E5A;font-weight:700;">Efectivo</span></div>
         </div>
-        <div class="pay-card toggle-opt" data-metodo="Yappy" onclick="seleccionarMetodoPago(this)" style="cursor:pointer;">
-          <div class="pay-top"><div class="pay-icon" style="background:linear-gradient(135deg,#1AACE3,#FF7A1A);"><i class="ti ti-device-mobile" style="font-size:13px;color:#fff;" aria-hidden="true"></i></div><span class="pay-name">Yappy</span></div>
+        <div class="pay-card toggle-opt" data-metodo="Yappy" data-bg="#E5F6FC" data-icon-bg="linear-gradient(135deg,#1AACE3,#FF7A1A)" data-text="#0F86B5" onclick="seleccionarMetodoPago(this)" style="cursor:pointer;">
+          <div class="pay-top"><div class="pay-icon" style="background:var(--card-border);"><i class="ti ti-device-mobile" style="font-size:13px;color:var(--txt-faint);" aria-hidden="true"></i></div><span class="pay-name">Yappy</span></div>
         </div>
-        <div class="pay-card toggle-opt" data-metodo="Transferencia" onclick="seleccionarMetodoPago(this)" style="cursor:pointer;">
-          <div class="pay-top"><div class="pay-icon" style="background:#E6F1FB;"><i class="ti ti-building-bank" style="font-size:13px;color:#185FA5;" aria-hidden="true"></i></div><span class="pay-name">Transferencia</span></div>
+        <div class="pay-card toggle-opt" data-metodo="Transferencia" data-bg="#E6F1FB" data-icon-bg="#185FA5" data-text="#185FA5" onclick="seleccionarMetodoPago(this)" style="cursor:pointer;">
+          <div class="pay-top"><div class="pay-icon" style="background:var(--card-border);"><i class="ti ti-building-bank" style="font-size:13px;color:var(--txt-faint);" aria-hidden="true"></i></div><span class="pay-name">Transferencia</span></div>
         </div>
-        <div class="pay-card toggle-opt" data-metodo="Tarjeta" onclick="seleccionarMetodoPago(this)" style="cursor:pointer;">
-          <div class="pay-top"><div class="pay-icon" style="background:#EDEBE7;"><i class="ti ti-credit-card" style="font-size:13px;color:var(--charcoal);" aria-hidden="true"></i></div><span class="pay-name">Tarjeta</span></div>
+        <div class="pay-card toggle-opt" data-metodo="Tarjeta" data-bg="#EDEBE7" data-icon-bg="#2E2B2B" data-text="#2E2B2B" onclick="seleccionarMetodoPago(this)" style="cursor:pointer;">
+          <div class="pay-top"><div class="pay-icon" style="background:var(--card-border);"><i class="ti ti-credit-card" style="font-size:13px;color:var(--txt-faint);" aria-hidden="true"></i></div><span class="pay-name">Tarjeta</span></div>
         </div>
       </div>
       <input type="hidden" id="vMetodoPago" value="Efectivo"/>
@@ -396,7 +397,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
         <label class="flbl">Motivo (opcional)</label>
         <input class="fi" id="adMotivo" placeholder="Ej: adelanto de quincena"/>
       </div>
-      <button class="btn-main" id="btnGuardarAdelanto">Guardar adelanto</button>
+      <button class="btn-main" id="btnGuardarAdelanto" style="background:#D85A30;color:#fff;">Guardar adelanto</button>
     </div>
   </div>
 </div>
@@ -627,8 +628,28 @@ function seleccionarColabAdelanto(nombre) {
 }
 
 function seleccionarMetodoPago(el) {
-  document.querySelectorAll('#toggleMetodoPago .toggle-opt').forEach(o => o.classList.remove('sel'));
+  document.querySelectorAll('#toggleMetodoPago .toggle-opt').forEach(o => {
+    o.classList.remove('sel');
+    o.style.background = '';
+    o.style.borderLeft = '';
+    const icon = o.querySelector('.pay-icon');
+    const name = o.querySelector('.pay-name');
+    icon.style.background = 'var(--card-border)';
+    icon.querySelector('i').style.color = 'var(--txt-faint)';
+    name.style.color = '';
+    name.style.fontWeight = '';
+  });
+
   el.classList.add('sel');
+  el.style.background = el.dataset.bg;
+  el.style.borderLeft = '3px solid ' + el.dataset.text;
+  const icon = el.querySelector('.pay-icon');
+  const name = el.querySelector('.pay-name');
+  icon.style.background = el.dataset.iconBg;
+  icon.querySelector('i').style.color = '#fff';
+  name.style.color = el.dataset.text;
+  name.style.fontWeight = '700';
+
   document.getElementById('vMetodoPago').value = el.dataset.metodo;
 }
 
@@ -797,9 +818,7 @@ function resetFormularioVenta() {
   document.querySelector('.toggle-opt[data-cat="estilismo"]').classList.add('sel');
   categoriaActual = 'estilismo';
   renderSelectServicios();
-  document.querySelectorAll('#toggleMetodoPago .toggle-opt').forEach(o => o.classList.remove('sel'));
-  document.querySelector('#toggleMetodoPago .toggle-opt[data-metodo="Efectivo"]').classList.add('sel');
-  document.getElementById('vMetodoPago').value = 'Efectivo';
+  seleccionarMetodoPago(document.querySelector('#toggleMetodoPago .toggle-opt[data-metodo="Efectivo"]'));
 }
 
 async function guardarAdelanto() {
