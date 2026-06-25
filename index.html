@@ -108,8 +108,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 .fi-select-full{width:100%;padding:11px 13px;font-size:14px;background:var(--bg);border:0.5px solid var(--card-border);border-radius:var(--radius-sm);color:var(--txt);font-family:inherit;}
 .toggle-cat{display:flex;gap:8px;}
 .toggle-opt{flex:1;padding:12px;text-align:center;border-radius:var(--radius-sm);border:1.5px solid var(--card-border);background:var(--bg);color:var(--txt-dim);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;position:relative;}
-.toggle-opt.sel{border-color:var(--gold-dark);background:var(--gold);color:var(--charcoal);font-weight:700;box-shadow:0 2px 6px rgba(201,169,110,.4);}
-.toggle-opt.sel::after{content:'✓';position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:var(--charcoal);color:var(--gold);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.toggle-opt.sel:not(.pay-card){border-color:var(--gold-dark);background:var(--gold);color:var(--charcoal);font-weight:700;box-shadow:0 2px 6px rgba(201,169,110,.4);}
+.pay-card.toggle-opt.sel{border-width:1.5px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.pay-card.toggle-opt.sel .pay-name{font-weight:700;}
+.toggle-opt.sel:not(.pay-card)::after{content:'✓';position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:var(--charcoal);color:var(--gold);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 .btn-main{width:100%;padding:14px;background:var(--gold);color:var(--charcoal);border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;}
 .btn-main:active{transform:scale(.98);}
 .btn-main:disabled{opacity:.5;}
@@ -234,11 +236,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     </div>
     <div class="fg">
       <label class="flbl">Método de pago</label>
-      <div class="toggle-cat" id="toggleMetodoPago" style="flex-wrap:wrap;">
-        <div class="toggle-opt sel" data-metodo="Efectivo" onclick="seleccionarMetodoPago(this)" style="min-width:45%;">Efectivo</div>
-        <div class="toggle-opt" data-metodo="Yappy" onclick="seleccionarMetodoPago(this)" style="min-width:45%;">Yappy</div>
-        <div class="toggle-opt" data-metodo="Transferencia" onclick="seleccionarMetodoPago(this)" style="min-width:45%;">Transferencia</div>
-        <div class="toggle-opt" data-metodo="Tarjeta" onclick="seleccionarMetodoPago(this)" style="min-width:45%;">Tarjeta</div>
+      <div class="pay-grid" id="toggleMetodoPago">
+        <div class="pay-card toggle-opt sel" data-metodo="Efectivo" onclick="seleccionarMetodoPago(this)" style="border-left:3px solid #1E9E5A;cursor:pointer;">
+          <div class="pay-top"><div class="pay-icon" style="background:#E3F6EA;"><i class="ti ti-cash-banknote" style="font-size:13px;color:#1E9E5A;" aria-hidden="true"></i></div><span class="pay-name" style="color:#1E9E5A;font-weight:600;">Efectivo</span></div>
+        </div>
+        <div class="pay-card toggle-opt" data-metodo="Yappy" onclick="seleccionarMetodoPago(this)" style="cursor:pointer;">
+          <div class="pay-top"><div class="pay-icon" style="background:linear-gradient(135deg,#1AACE3,#FF7A1A);"><i class="ti ti-device-mobile" style="font-size:13px;color:#fff;" aria-hidden="true"></i></div><span class="pay-name">Yappy</span></div>
+        </div>
+        <div class="pay-card toggle-opt" data-metodo="Transferencia" onclick="seleccionarMetodoPago(this)" style="cursor:pointer;">
+          <div class="pay-top"><div class="pay-icon" style="background:#E6F1FB;"><i class="ti ti-building-bank" style="font-size:13px;color:#185FA5;" aria-hidden="true"></i></div><span class="pay-name">Transferencia</span></div>
+        </div>
+        <div class="pay-card toggle-opt" data-metodo="Tarjeta" onclick="seleccionarMetodoPago(this)" style="cursor:pointer;">
+          <div class="pay-top"><div class="pay-icon" style="background:#EDEBE7;"><i class="ti ti-credit-card" style="font-size:13px;color:var(--charcoal);" aria-hidden="true"></i></div><span class="pay-name">Tarjeta</span></div>
+        </div>
       </div>
       <input type="hidden" id="vMetodoPago" value="Efectivo"/>
     </div>
@@ -246,10 +256,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
       <label class="flbl">Notas (opcional)</label>
       <input class="fi" id="vNotas" placeholder="Detalles adicionales"/>
     </div>
-    <button class="btn-main" id="btnRegistrarVenta">Registrar venta</button>
+    <button class="btn-main" id="btnRegistrarVenta" style="background:linear-gradient(135deg,#2E6FC4,#1A4D94);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-receipt-2" style="font-size:17px;" aria-hidden="true"></i> Registrar venta</button>
   </div>
 
-  <button class="btn-secondary-full" id="btnAbrirAdelanto" style="background:#FF7A1A;border:none;color:#fff;font-weight:700;"><i class="ti ti-hand-stop" aria-hidden="true"></i> Registrar adelanto</button>
+  <button class="btn-secondary-full" id="btnAbrirAdelanto" style="background:#fff;border:1.5px solid #D85A30;color:#993C1D;font-weight:700;"><i class="ti ti-hand-stop" aria-hidden="true"></i> Registrar adelanto</button>
 </div>
 
 <div class="view" id="view-resumen">
@@ -323,10 +333,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
         <span class="emp-name" id="empNombre"></span>
       </div>
       <div class="emp-grid">
-        <div class="emp-stat"><div class="emp-stat-lbl">Ventas</div><div class="emp-stat-val" id="empVentas">$0.00</div></div>
-        <div class="emp-stat"><div class="emp-stat-lbl">Comisión</div><div class="emp-stat-val" id="empComision">$0.00</div></div>
-        <div class="emp-stat"><div class="emp-stat-lbl">Adelantos</div><div class="emp-stat-val" id="empAdelantos" style="color:var(--orange);">-$0.00</div></div>
-        <div class="emp-stat"><div class="emp-stat-lbl">Neto a pagar</div><div class="emp-stat-val" id="empNeto" style="color:var(--gold-dark);">$0.00</div></div>
+        <div class="emp-stat" style="background:#E6F1FB;"><div class="emp-stat-lbl" style="color:#185FA5;">Ventas</div><div class="emp-stat-val" id="empVentas" style="color:#0C447C;">$0.00</div></div>
+        <div class="emp-stat" style="background:#EAF3DE;"><div class="emp-stat-lbl" style="color:#3B6D11;">Comisión</div><div class="emp-stat-val" id="empComision" style="color:#27500A;">$0.00</div></div>
+        <div class="emp-stat" style="background:#FAECE7;"><div class="emp-stat-lbl" style="color:#993C1D;">Adelantos</div><div class="emp-stat-val" id="empAdelantos" style="color:#712B13;">-$0.00</div></div>
+        <div class="emp-stat" style="background:var(--gold-light);"><div class="emp-stat-lbl" style="color:var(--gold-dark);">Neto a pagar</div><div class="emp-stat-val" id="empNeto" style="color:#5a4226;">$0.00</div></div>
       </div>
       <button class="btn-comprobante" id="btnGenerarComprobante"><i class="ti ti-file-invoice" aria-hidden="true"></i> Ver comprobante (vista previa)</button>
     </div>
