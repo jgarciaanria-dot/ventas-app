@@ -74,7 +74,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 .pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;}
 .pay-card{background:var(--card);border:0.5px solid var(--card-border);border-radius:var(--radius-sm);padding:11px 13px;}
 .pay-top{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
-.pay-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pay-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pay-name{font-size:11px;color:var(--txt-dim);}
 .pay-amt{font-size:15px;font-weight:600;color:var(--txt);}
 
@@ -249,7 +249,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <button class="btn-main" id="btnRegistrarVenta">Registrar venta</button>
   </div>
 
-  <button class="btn-secondary-full" id="btnAbrirAdelanto"><i class="ti ti-hand-stop" aria-hidden="true"></i> Registrar adelanto</button>
+  <button class="btn-secondary-full" id="btnAbrirAdelanto" style="background:#FF7A1A;border:none;color:#fff;font-weight:700;"><i class="ti ti-hand-stop" aria-hidden="true"></i> Registrar adelanto</button>
 </div>
 
 <div class="view" id="view-resumen">
@@ -266,30 +266,30 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <input type="hidden" id="selColaborador" value=""/>
   </div>
   <div class="btn-row">
-    <button class="btn-sm primary" id="btnAplicarFiltro"><i class="ti ti-filter" aria-hidden="true"></i> Aplicar</button>
-    <button class="btn-sm ghost" id="btnQuincenaActual"><i class="ti ti-calendar" aria-hidden="true"></i> Quincena actual</button>
+    <button class="btn-sm primary" id="btnAplicarFiltro" style="background:#185FA5;color:#fff;border:none;"><i class="ti ti-filter" aria-hidden="true"></i> Aplicar</button>
+    <button class="btn-sm ghost" id="btnQuincenaActual" style="background:#1E9E5A;color:#fff;border:none;"><i class="ti ti-calendar" aria-hidden="true"></i> Quincena actual</button>
   </div>
 
   <p class="titulo-rango" id="tituloRango"></p>
 
   <div class="metrics-grid">
-    <div class="metric-card sales">
-      <div class="metric-icon" style="background:rgba(24,95,165,.12);"><i class="ti ti-shopping-cart" style="font-size:12px;color:var(--blue);" aria-hidden="true"></i></div>
-      <div class="metric-label" style="color:var(--blue);">Total ventas</div>
-      <div class="metric-value" style="color:var(--blue);" id="mVentas">$0.00</div>
+    <div class="metric-card sales" style="background:linear-gradient(135deg,#2E6FC4,#1A4D94);">
+      <div class="metric-icon" style="background:rgba(255,255,255,.2);"><i class="ti ti-shopping-cart" style="font-size:13px;color:#fff;" aria-hidden="true"></i></div>
+      <div class="metric-label" style="color:rgba(255,255,255,.8);">Total ventas</div>
+      <div class="metric-value" style="color:#fff;" id="mVentas">$0.00</div>
     </div>
-    <div class="metric-card comm">
-      <div class="metric-icon" style="background:rgba(59,109,17,.12);"><i class="ti ti-percentage" style="font-size:12px;color:var(--green);" aria-hidden="true"></i></div>
-      <div class="metric-label" style="color:var(--green);">Comisión</div>
-      <div class="metric-value" style="color:var(--green);" id="mComision">$0.00</div>
+    <div class="metric-card comm" style="background:linear-gradient(135deg,#2BAE66,#1E8A4F);">
+      <div class="metric-icon" style="background:rgba(255,255,255,.2);"><i class="ti ti-percentage" style="font-size:13px;color:#fff;" aria-hidden="true"></i></div>
+      <div class="metric-label" style="color:rgba(255,255,255,.85);">Comisión</div>
+      <div class="metric-value" style="color:#fff;" id="mComision">$0.00</div>
     </div>
-    <div class="metric-card studio">
-      <div class="metric-icon" style="background:rgba(15,110,86,.12);"><i class="ti ti-building-store" style="font-size:12px;color:var(--teal);" aria-hidden="true"></i></div>
-      <div class="metric-label" style="color:var(--teal);">Studio</div>
-      <div class="metric-value" style="color:var(--teal);" id="mStudio">$0.00</div>
+    <div class="metric-card studio" style="background:linear-gradient(135deg,#1AA88A,#117A66);">
+      <div class="metric-icon" style="background:rgba(255,255,255,.2);"><i class="ti ti-building-store" style="font-size:13px;color:#fff;" aria-hidden="true"></i></div>
+      <div class="metric-label" style="color:rgba(255,255,255,.85);">Studio</div>
+      <div class="metric-value" style="color:#fff;" id="mStudio">$0.00</div>
     </div>
-    <div class="metric-card svc">
-      <div class="metric-icon" style="background:var(--bg);"><i class="ti ti-checks" style="font-size:12px;color:var(--txt-dim);" aria-hidden="true"></i></div>
+    <div class="metric-card svc" style="background:var(--card);border:0.5px solid var(--card-border);">
+      <div class="metric-icon" style="background:var(--gold-light);"><i class="ti ti-checks" style="font-size:13px;color:var(--gold-dark);" aria-hidden="true"></i></div>
       <div class="metric-label" style="color:var(--txt-dim);">Servicios</div>
       <div class="metric-value" style="color:var(--txt);" id="mServicios">0</div>
     </div>
@@ -297,21 +297,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 
   <div class="sec-label">Por método de pago</div>
   <div class="pay-grid">
-    <div class="pay-card">
-      <div class="pay-top"><div class="pay-icon" style="background:var(--green-bg);"><i class="ti ti-cash" style="font-size:10px;color:var(--green);" aria-hidden="true"></i></div><span class="pay-name">Efectivo</span></div>
-      <div class="pay-amt" id="pEfectivo">$0.00</div>
+    <div class="pay-card" style="border-left:3px solid #1E9E5A;">
+      <div class="pay-top"><div class="pay-icon" style="background:#E3F6EA;"><i class="ti ti-cash-banknote" style="font-size:13px;color:#1E9E5A;" aria-hidden="true"></i></div><span class="pay-name">Efectivo</span></div>
+      <div class="pay-amt" id="pEfectivo" style="color:#1E9E5A;">$0.00</div>
     </div>
-    <div class="pay-card">
-      <div class="pay-top"><div class="pay-icon" style="background:var(--orange-bg);"><i class="ti ti-device-mobile" style="font-size:10px;color:var(--orange);" aria-hidden="true"></i></div><span class="pay-name">Yappy</span></div>
-      <div class="pay-amt" id="pYappy">$0.00</div>
+    <div class="pay-card" style="border-left:3px solid #1AACE3;">
+      <div class="pay-top"><div class="pay-icon" style="background:linear-gradient(135deg,#1AACE3,#FF7A1A);"><i class="ti ti-device-mobile" style="font-size:13px;color:#fff;" aria-hidden="true"></i></div><span class="pay-name">Yappy</span></div>
+      <div class="pay-amt" id="pYappy" style="color:#1AACE3;">$0.00</div>
     </div>
-    <div class="pay-card">
-      <div class="pay-top"><div class="pay-icon" style="background:var(--blue-bg);"><i class="ti ti-building-bank" style="font-size:10px;color:var(--blue);" aria-hidden="true"></i></div><span class="pay-name">Transferencia</span></div>
-      <div class="pay-amt" id="pTransferencia">$0.00</div>
+    <div class="pay-card" style="border-left:3px solid #185FA5;">
+      <div class="pay-top"><div class="pay-icon" style="background:#E6F1FB;"><i class="ti ti-building-bank" style="font-size:13px;color:#185FA5;" aria-hidden="true"></i></div><span class="pay-name">Transferencia</span></div>
+      <div class="pay-amt" id="pTransferencia" style="color:#185FA5;">$0.00</div>
     </div>
-    <div class="pay-card">
-      <div class="pay-top"><div class="pay-icon" style="background:var(--bg);"><i class="ti ti-credit-card" style="font-size:10px;color:var(--txt-dim);" aria-hidden="true"></i></div><span class="pay-name">Tarjeta</span></div>
-      <div class="pay-amt" id="pTarjeta">$0.00</div>
+    <div class="pay-card" style="border-left:3px solid var(--charcoal);">
+      <div class="pay-top"><div class="pay-icon" style="background:#EDEBE7;"><i class="ti ti-credit-card" style="font-size:13px;color:var(--charcoal);" aria-hidden="true"></i></div><span class="pay-name">Tarjeta</span></div>
+      <div class="pay-amt" id="pTarjeta" style="color:var(--charcoal);">$0.00</div>
     </div>
   </div>
 
