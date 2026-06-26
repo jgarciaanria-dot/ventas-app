@@ -424,6 +424,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
         <label class="flbl">Nombre del cliente (opcional)</label>
         <input class="fi" id="prCliente" placeholder="Nombre de la clienta"/>
       </div>
+      <div class="fg">
+        <label class="flbl">¿Ya se le pagó al socio?</label>
+        <div class="toggle-cat">
+          <div class="toggle-opt sel" data-estado="Contado" onclick="seleccionarEstadoPropina(this)" style="border-color:#1E9E5A;">Contado</div>
+          <div class="toggle-opt" data-estado="Por pagar" onclick="seleccionarEstadoPropina(this)">Por pagar</div>
+        </div>
+        <input type="hidden" id="prEstado" value="Contado"/>
+        <p style="font-size:11px;color:var(--txt-faint);margin-top:6px;line-height:1.5;" id="prEstadoNota">El socio ya recibió este dinero en mano. No se sumará al neto de la quincena.</p>
+      </div>
+      <div class="fg">
+        <label class="flbl">Método de pago (referencia)</label>
+        <select class="fi-select-full" id="prMetodoPago">
+          <option value="Efectivo">Efectivo</option>
+          <option value="Yappy">Yappy</option>
+          <option value="Transferencia">Transferencia</option>
+          <option value="Tarjeta">Tarjeta</option>
+        </select>
+      </div>
       <button class="btn-main" id="btnGuardarPropina" style="background:#1E9E5A;color:#fff;">Guardar propina</button>
     </div>
   </div>
@@ -674,6 +692,24 @@ function seleccionarColabPropina(nombre) {
   closeOv('ov-colab-propina');
 }
 
+function seleccionarEstadoPropina(el) {
+  document.querySelectorAll('#ov-propina .toggle-opt[data-estado]').forEach(o => {
+    o.classList.remove('sel');
+    o.style.borderColor = '';
+  });
+  el.classList.add('sel');
+  const estado = el.dataset.estado;
+  document.getElementById('prEstado').value = estado;
+  const nota = document.getElementById('prEstadoNota');
+  if (estado === 'Contado') {
+    el.style.borderColor = '#1E9E5A';
+    nota.textContent = 'El socio ya recibió este dinero en mano. No se sumará al neto de la quincena.';
+  } else {
+    el.style.borderColor = '#D85A30';
+    nota.textContent = 'El negocio tiene este dinero pendiente. Se sumará al neto a pagar en la quincena.';
+  }
+}
+
 function seleccionarMetodoPago(el) {
   document.querySelectorAll('#toggleMetodoPago .toggle-opt').forEach(o => {
     o.classList.remove('sel');
@@ -898,6 +934,8 @@ async function guardarPropina() {
   const colaborador = document.getElementById('prColaborador').value;
   const monto = parseFloat(document.getElementById('prMonto').value);
   const cliente = document.getElementById('prCliente').value.trim();
+  const estado = document.getElementById('prEstado').value;
+  const metodoPago = document.getElementById('prMetodoPago').value;
 
   if (!colaborador || !monto) {
     showToast('Completa el socio y el monto');
@@ -906,12 +944,16 @@ async function guardarPropina() {
 
   showLoader('Guardando propina...');
   try {
-    await Contabilidad.registrarPropina({ colaborador, monto, cliente });
+    await Contabilidad.registrarPropina({ colaborador, monto, cliente, estado, metodoPago });
     closeOv('ov-propina');
     document.getElementById('prMonto').value = '';
     document.getElementById('prCliente').value = '';
     document.getElementById('prColaborador').value = '';
     document.getElementById('prColaboradorLabel').textContent = 'Selecciona un socio';
+    document.querySelectorAll('#ov-propina .toggle-opt[data-estado]').forEach(o => o.classList.remove('sel'));
+    document.querySelector('#ov-propina .toggle-opt[data-estado="Contado"]').classList.add('sel');
+    document.getElementById('prEstado').value = 'Contado';
+    document.getElementById('prEstadoNota').textContent = 'El socio ya recibió este dinero en mano. No se sumará al neto de la quincena.';
     showToast('Propina registrada');
   } catch (e) {
     showToast('Error al registrar propina');
