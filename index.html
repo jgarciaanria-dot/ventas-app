@@ -258,9 +258,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
       <input class="fi" id="vNotas" placeholder="Detalles adicionales"/>
     </div>
     <button class="btn-main" id="btnRegistrarVenta" style="background:linear-gradient(135deg,#2E6FC4,#1A4D94);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-receipt-2" style="font-size:17px;" aria-hidden="true"></i> Registrar venta</button>
-  </div>
 
-  <button class="btn-secondary-full" id="btnAbrirAdelanto" style="background:#fff;border:1.5px solid #D85A30;color:#993C1D;font-weight:700;"><i class="ti ti-hand-stop" aria-hidden="true"></i> Registrar adelanto</button>
+    <button class="btn-main" id="btnAbrirPropina" style="background:#fff;border:1.5px solid #1E9E5A;color:#1E8A4F;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;"><i class="ti ti-coin" style="font-size:17px;" aria-hidden="true"></i> Registrar propina</button>
+
+    <button class="btn-main" id="btnAbrirAdelanto" style="background:#fff;border:1.5px solid #D85A30;color:#993C1D;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;"><i class="ti ti-hand-stop" style="font-size:17px;" aria-hidden="true"></i> Registrar adelanto</button>
+  </div>
 </div>
 
 <div class="view" id="view-resumen">
@@ -402,6 +404,31 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
   </div>
 </div>
 
+<div class="ov" id="ov-propina">
+  <div class="panel">
+    <div class="phdr"><span class="ptitle">Registrar propina</span><button class="pclose" onclick="closeOv('ov-propina')">×</button></div>
+    <div class="pbody">
+      <div class="fg">
+        <label class="flbl">Socio de negocio</label>
+        <button class="fi-select-full" id="btnAbrirColabPropina" style="text-align:left;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+          <span id="prColaboradorLabel">Selecciona un socio</span>
+          <i class="ti ti-chevron-down" aria-hidden="true"></i>
+        </button>
+        <input type="hidden" id="prColaborador"/>
+      </div>
+      <div class="fg">
+        <label class="flbl">Monto ($)</label>
+        <input class="fi" id="prMonto" type="number" min="0" step="0.01" placeholder="0.00"/>
+      </div>
+      <div class="fg">
+        <label class="flbl">Nombre del cliente (opcional)</label>
+        <input class="fi" id="prCliente" placeholder="Nombre de la clienta"/>
+      </div>
+      <button class="btn-main" id="btnGuardarPropina" style="background:#1E9E5A;color:#fff;">Guardar propina</button>
+    </div>
+  </div>
+</div>
+
 <div class="ov" id="ov-servicio">
   <div class="panel">
     <div class="phdr"><span class="ptitle">Selecciona el servicio</span><button class="pclose" onclick="closeOv('ov-servicio')">×</button></div>
@@ -434,6 +461,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <div class="phdr"><span class="ptitle">Selecciona el socio</span><button class="pclose" onclick="closeOv('ov-colab-adelanto')">×</button></div>
     <div class="pbody" style="padding-top:0.5rem;">
       <div id="listaColabAdelanto"></div>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-colab-propina">
+  <div class="panel">
+    <div class="phdr"><span class="ptitle">Selecciona el socio</span><button class="pclose" onclick="closeOv('ov-colab-propina')">×</button></div>
+    <div class="pbody" style="padding-top:0.5rem;">
+      <div id="listaColabPropina"></div>
     </div>
   </div>
 </div>
@@ -591,6 +627,7 @@ async function cargarColaboradores() {
   renderListaColabFiltro();
   renderListaColabVenta();
   renderListaColabAdelanto();
+  renderListaColabPropina();
 }
 
 const ESPECIALIDAD_SOCIO = {
@@ -625,6 +662,16 @@ function seleccionarColabAdelanto(nombre) {
   document.getElementById('adColaborador').value = nombre;
   document.getElementById('adColaboradorLabel').textContent = nombre;
   closeOv('ov-colab-adelanto');
+}
+
+function renderListaColabPropina() {
+  const cont = document.getElementById('listaColabPropina');
+  cont.innerHTML = COLABORADORES.map(c => `<div class="opt-list-item" onclick="seleccionarColabPropina('${c.nombre.replace(/'/g, "\\'")}')">${c.nombre}</div>`).join('');
+}
+function seleccionarColabPropina(nombre) {
+  document.getElementById('prColaborador').value = nombre;
+  document.getElementById('prColaboradorLabel').textContent = nombre;
+  closeOv('ov-colab-propina');
 }
 
 function seleccionarMetodoPago(el) {
@@ -847,6 +894,32 @@ async function guardarAdelanto() {
   hideLoader();
 }
 
+async function guardarPropina() {
+  const colaborador = document.getElementById('prColaborador').value;
+  const monto = parseFloat(document.getElementById('prMonto').value);
+  const cliente = document.getElementById('prCliente').value.trim();
+
+  if (!colaborador || !monto) {
+    showToast('Completa el socio y el monto');
+    return;
+  }
+
+  showLoader('Guardando propina...');
+  try {
+    await Contabilidad.registrarPropina({ colaborador, monto, cliente });
+    closeOv('ov-propina');
+    document.getElementById('prMonto').value = '';
+    document.getElementById('prCliente').value = '';
+    document.getElementById('prColaborador').value = '';
+    document.getElementById('prColaboradorLabel').textContent = 'Selecciona un socio';
+    showToast('Propina registrada');
+  } catch (e) {
+    showToast('Error al registrar propina');
+    console.error(e);
+  }
+  hideLoader();
+}
+
 async function generarComprobante() {
   const colaborador = document.getElementById('empNombre').textContent;
   const f = obtenerFiltrosActuales();
@@ -860,8 +933,11 @@ async function generarComprobante() {
     if (resultado.pdfBase64) {
       const link = document.createElement('a');
       link.href = 'data:application/pdf;base64,' + resultado.pdfBase64;
-      link.download = resultado.nombreArchivo;
+      const nombreUnico = resultado.nombreArchivo.replace('.pdf', '') + '_' + Date.now() + '.pdf';
+      link.download = nombreUnico;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     }
   } catch (e) {
     showToast('Error al generar el comprobante');
@@ -939,11 +1015,14 @@ async function initApp() {
   document.getElementById('btnRefreshTop').addEventListener('click', aplicarFiltrosDashboard);
   document.getElementById('btnRegistrarVenta').addEventListener('click', registrarVenta);
   document.getElementById('btnAbrirAdelanto').addEventListener('click', () => openOv('ov-adelanto'));
+  document.getElementById('btnAbrirPropina').addEventListener('click', () => openOv('ov-propina'));
   document.getElementById('btnAbrirServicio').addEventListener('click', () => openOv('ov-servicio'));
   document.getElementById('btnAbrirColabFiltro').addEventListener('click', () => openOv('ov-colab-filtro'));
   document.getElementById('btnAbrirColabVenta').addEventListener('click', () => openOv('ov-colab-venta'));
   document.getElementById('btnAbrirColabAdelanto').addEventListener('click', () => openOv('ov-colab-adelanto'));
+  document.getElementById('btnAbrirColabPropina').addEventListener('click', () => openOv('ov-colab-propina'));
   document.getElementById('btnGuardarAdelanto').addEventListener('click', guardarAdelanto);
+  document.getElementById('btnGuardarPropina').addEventListener('click', guardarPropina);
   document.getElementById('btnGenerarComprobante').addEventListener('click', generarComprobante);
   document.getElementById('btnCerrarQuincena').addEventListener('click', cerrarQuincena);
 }
