@@ -89,6 +89,17 @@ const Contabilidad = {
     return data;
   },
 
+  async registrarPropina(propina) {
+    const res = await fetch(CONFIG.contabilidad.scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'registrarPropina', ...propina })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Error al registrar propina');
+    return data;
+  },
+
   async generarComprobante(datos) {
     const res = await fetch(CONFIG.contabilidad.scriptUrl, {
       method: 'POST',
