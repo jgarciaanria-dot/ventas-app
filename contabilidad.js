@@ -100,6 +100,29 @@ const Contabilidad = {
     return data;
   },
 
+  async getPropinasPendientes(colaborador) {
+    try {
+      const url = CONFIG.contabilidad.scriptUrl + '?action=getPropinasPendientes&colaborador=' + encodeURIComponent(colaborador) + '&_=' + Date.now();
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.pendientes || [];
+    } catch (e) {
+      console.error('Error cargando propinas pendientes:', e);
+      return [];
+    }
+  },
+
+  async marcarPropinaPagada(datos) {
+    const res = await fetch(CONFIG.contabilidad.scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'marcarPropinaPagada', ...datos })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Error al marcar como pagada');
+    return data;
+  },
+
   async generarComprobante(datos) {
     const res = await fetch(CONFIG.contabilidad.scriptUrl, {
       method: 'POST',
