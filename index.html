@@ -461,12 +461,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
       </div>
       <div class="fg">
         <label class="flbl">Método de pago (referencia)</label>
-        <select class="fi-select-full" id="prMetodoPago">
-          <option value="Efectivo">Efectivo</option>
-          <option value="Yappy">Yappy</option>
-          <option value="Transferencia">Transferencia</option>
-          <option value="Tarjeta">Tarjeta</option>
-        </select>
+        <div class="pay-grid" id="toggleMetodoPagoPropina">
+          <div class="pay-card toggle-opt sel" data-metodo="Efectivo" data-bg="#E3F6EA" data-icon-bg="#1E9E5A" data-text="#1E9E5A" onclick="seleccionarMetodoPago(this, 'toggleMetodoPagoPropina', 'prMetodoPago')" style="background:#E3F6EA;border-left:3px solid #1E9E5A;cursor:pointer;">
+            <div class="pay-top"><div class="pay-icon" style="background:#1E9E5A;"><i class="ti ti-cash-banknote" style="font-size:13px;color:#fff;" aria-hidden="true"></i></div><span class="pay-name" style="color:#1E9E5A;font-weight:700;">Efectivo</span></div>
+          </div>
+          <div class="pay-card toggle-opt" data-metodo="Yappy" data-bg="#E5F6FC" data-icon-bg="linear-gradient(135deg,#1AACE3,#FF7A1A)" data-text="#0F86B5" onclick="seleccionarMetodoPago(this, 'toggleMetodoPagoPropina', 'prMetodoPago')" style="cursor:pointer;">
+            <div class="pay-top"><div class="pay-icon" style="background:var(--card-border);"><i class="ti ti-device-mobile" style="font-size:13px;color:var(--txt-faint);" aria-hidden="true"></i></div><span class="pay-name">Yappy</span></div>
+          </div>
+          <div class="pay-card toggle-opt" data-metodo="Transferencia" data-bg="#E6F1FB" data-icon-bg="#185FA5" data-text="#185FA5" onclick="seleccionarMetodoPago(this, 'toggleMetodoPagoPropina', 'prMetodoPago')" style="cursor:pointer;">
+            <div class="pay-top"><div class="pay-icon" style="background:var(--card-border);"><i class="ti ti-building-bank" style="font-size:13px;color:var(--txt-faint);" aria-hidden="true"></i></div><span class="pay-name">Transferencia</span></div>
+          </div>
+          <div class="pay-card toggle-opt" data-metodo="Tarjeta" data-bg="#EDEBE7" data-icon-bg="#2E2B2B" data-text="#2E2B2B" onclick="seleccionarMetodoPago(this, 'toggleMetodoPagoPropina', 'prMetodoPago')" style="cursor:pointer;">
+            <div class="pay-top"><div class="pay-icon" style="background:var(--card-border);"><i class="ti ti-credit-card" style="font-size:13px;color:var(--txt-faint);" aria-hidden="true"></i></div><span class="pay-name">Tarjeta</span></div>
+          </div>
+        </div>
+        <input type="hidden" id="prMetodoPago" value="Efectivo"/>
       </div>
       <button class="btn-main" id="btnGuardarPropina" style="background:#1E9E5A;color:#fff;">Guardar propina</button>
     </div>
@@ -802,8 +811,10 @@ function seleccionarEstadoPropina(el) {
   }
 }
 
-function seleccionarMetodoPago(el) {
-  document.querySelectorAll('#toggleMetodoPago .toggle-opt').forEach(o => {
+function seleccionarMetodoPago(el, grupoId, inputId) {
+  grupoId = grupoId || 'toggleMetodoPago';
+  inputId = inputId || 'vMetodoPago';
+  document.querySelectorAll('#' + grupoId + ' .toggle-opt').forEach(o => {
     o.classList.remove('sel');
     o.style.background = '';
     o.style.borderLeft = '';
@@ -825,7 +836,7 @@ function seleccionarMetodoPago(el) {
   name.style.color = el.dataset.text;
   name.style.fontWeight = '700';
 
-  document.getElementById('vMetodoPago').value = el.dataset.metodo;
+  document.getElementById(inputId).value = el.dataset.metodo;
 }
 
 function manejarCambioMontoPropina() {
@@ -1084,6 +1095,7 @@ async function guardarPropina() {
     document.querySelector('#ov-propina .toggle-opt[data-estado="Contado"]').classList.add('sel');
     document.getElementById('prEstado').value = 'Contado';
     document.getElementById('prEstadoNota').textContent = 'El socio ya recibió este dinero en mano. No se sumará al neto de la quincena.';
+    seleccionarMetodoPago(document.querySelector('#toggleMetodoPagoPropina .toggle-opt[data-metodo="Efectivo"]'), 'toggleMetodoPagoPropina', 'prMetodoPago');
     showToast('Propina registrada');
     await cargarPropinasPendientes(colaborador);
   } catch (e) {
