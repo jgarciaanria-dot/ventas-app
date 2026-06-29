@@ -339,6 +339,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
         <div class="emp-stat" style="background:#E6F1FB;"><div class="emp-stat-lbl" style="color:#185FA5;">Ventas</div><div class="emp-stat-val" id="empVentas" style="color:#0C447C;">$0.00</div></div>
         <div class="emp-stat" style="background:#EAF3DE;"><div class="emp-stat-lbl" style="color:#3B6D11;">Comisión</div><div class="emp-stat-val" id="empComision" style="color:#27500A;">$0.00</div></div>
         <div class="emp-stat" style="background:#FAECE7;"><div class="emp-stat-lbl" style="color:#993C1D;">Adelantos</div><div class="emp-stat-val" id="empAdelantos" style="color:#712B13;">-$0.00</div></div>
+        <div class="emp-stat" style="background:#EDEBE7;"><div class="emp-stat-lbl" style="color:var(--txt-dim);">Propinas pagadas</div><div class="emp-stat-val" id="empPropinasPagadas" style="color:var(--txt);">$0.00</div></div>
+        <div class="emp-stat" style="background:#E3F6EA;"><div class="emp-stat-lbl" style="color:#1E8A4F;">Propinas por pagar</div><div class="emp-stat-val" id="empPropinasPorPagar" style="color:#15622F;">+$0.00</div></div>
         <div class="emp-stat" style="background:var(--gold-light);"><div class="emp-stat-lbl" style="color:var(--gold-dark);">Neto a pagar</div><div class="emp-stat-val" id="empNeto" style="color:#5a4226;">$0.00</div></div>
       </div>
       <button class="btn-comprobante" id="btnGenerarComprobante"><i class="ti ti-file-invoice" aria-hidden="true"></i> Ver comprobante (vista previa)</button>
@@ -805,6 +807,8 @@ async function cargarResumen(filtros) {
       document.getElementById('empVentas').textContent = '$' + resumen.ventas.toFixed(2);
       document.getElementById('empComision').textContent = '$' + resumen.comision.toFixed(2);
       document.getElementById('empAdelantos').textContent = '-$' + resumen.adelantos.toFixed(2);
+      document.getElementById('empPropinasPagadas').textContent = '$' + (resumen.propinasPagadas||0).toFixed(2);
+      document.getElementById('empPropinasPorPagar').textContent = '+$' + (resumen.propinas||0).toFixed(2);
       document.getElementById('empNeto').textContent = '$' + resumen.neto.toFixed(2);
     } else {
       document.getElementById('emp-card-wrap').style.display = 'none';
