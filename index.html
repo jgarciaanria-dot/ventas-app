@@ -245,15 +245,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     </div>
     <div class="fg">
       <label class="flbl">Propina (opcional)</label>
-      <input class="fi" id="vPropinaMonto" type="number" min="0" step="0.01" placeholder="0.00" oninput="actualizarVisibilidadEstadoPropinaVenta()"/>
-      <div id="vPropinaEstadoWrap" style="display:none;margin-top:8px;">
-        <div class="toggle-cat">
-          <div class="toggle-opt sel" data-vpr-estado="Contado" onclick="seleccionarEstadoPropinaVenta(this)" style="border-color:#1E9E5A;">Contado</div>
-          <div class="toggle-opt" data-vpr-estado="Por pagar" onclick="seleccionarEstadoPropinaVenta(this)">Por pagar</div>
-        </div>
-        <input type="hidden" id="vPropinaEstado" value="Contado"/>
-        <p style="font-size:11px;color:var(--txt-faint);margin-top:6px;line-height:1.5;">Si la propina fue con tarjeta y el negocio aún no recibe ese dinero, marca "Por pagar".</p>
-      </div>
+      <input class="fi" id="vPropinaMonto" type="number" min="0" step="0.01" placeholder="0.00" onchange="manejarCambioMontoPropina()"/>
+      <input type="hidden" id="vPropinaEstado" value="Contado"/>
+      <p id="vPropinaEstadoIndicador" style="font-size:11px;margin-top:6px;line-height:1.5;display:none;"></p>
     </div>
     <div class="fg">
       <label class="flbl">Método de pago</label>
@@ -530,6 +524,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <div class="pbody" style="padding-top:0.5rem;">
       <div id="listaCierreColab"></div>
     </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-confirma-propina" style="align-items:center;">
+  <div class="panel" style="max-width:320px;border-radius:16px;text-align:center;padding:1.5rem 1.25rem;">
+    <div style="width:44px;height:44px;border-radius:50%;background:#E3F6EA;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+      <i class="ti ti-coin" style="font-size:22px;color:#1E8A4F;" aria-hidden="true"></i>
+    </div>
+    <p style="font-size:16px;font-weight:600;color:var(--txt);margin:0 0 6px;" id="propinaConfirmaMonto">Propina de $0.00</p>
+    <p style="font-size:13px;color:var(--txt-dim);margin:0 0 20px;line-height:1.5;">¿Ya se le entregó este dinero al socio?</p>
+    <button class="btn-main" style="background:#1E9E5A;color:#fff;margin-top:0;" onclick="confirmarEstadoPropinaVenta('Contado')">
+      <i class="ti ti-check" style="font-size:16px;margin-right:4px;" aria-hidden="true"></i> Sí, ya se pagó
+    </button>
+    <button class="btn-main" style="background:#fff;border:1.5px solid #D85A30;color:#993C1D;margin-top:8px;" onclick="confirmarEstadoPropinaVenta('Por pagar')">
+      No, queda pendiente
+    </button>
   </div>
 </div>
 
@@ -816,29 +826,32 @@ function seleccionarMetodoPago(el) {
   name.style.fontWeight = '700';
 
   document.getElementById('vMetodoPago').value = el.dataset.metodo;
-  actualizarVisibilidadEstadoPropinaVenta();
 }
 
-function actualizarVisibilidadEstadoPropinaVenta() {
+function manejarCambioMontoPropina() {
   const monto = parseFloat(document.getElementById('vPropinaMonto').value) || 0;
-  const metodoPago = document.getElementById('vMetodoPago').value;
-  const wrap = document.getElementById('vPropinaEstadoWrap');
-  if (monto > 0 && metodoPago === 'Tarjeta') {
-    wrap.style.display = 'block';
+  const indicador = document.getElementById('vPropinaEstadoIndicador');
+  if (monto > 0) {
+    document.getElementById('propinaConfirmaMonto').textContent = 'Propina de $' + monto.toFixed(2);
+    openOv('ov-confirma-propina');
   } else {
-    wrap.style.display = 'none';
+    document.getElementById('vPropinaEstado').value = 'Contado';
+    indicador.style.display = 'none';
   }
 }
 
-function seleccionarEstadoPropinaVenta(el) {
-  document.querySelectorAll('#vPropinaEstadoWrap .toggle-opt[data-vpr-estado]').forEach(o => {
-    o.classList.remove('sel');
-    o.style.borderColor = '';
-  });
-  el.classList.add('sel');
-  const estado = el.dataset.vprEstado;
+function confirmarEstadoPropinaVenta(estado) {
   document.getElementById('vPropinaEstado').value = estado;
-  el.style.borderColor = estado === 'Contado' ? '#1E9E5A' : '#D85A30';
+  const indicador = document.getElementById('vPropinaEstadoIndicador');
+  indicador.style.display = 'block';
+  if (estado === 'Contado') {
+    indicador.style.color = '#1E8A4F';
+    indicador.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Propina marcada como pagada';
+  } else {
+    indicador.style.color = '#993C1D';
+    indicador.innerHTML = '<i class="ti ti-clock" aria-hidden="true"></i> Propina pendiente de pago';
+  }
+  closeOv('ov-confirma-propina');
 }
 
 function renderListaColabFiltro() {
@@ -990,10 +1003,9 @@ async function registrarVenta() {
     });
 
     if (propinaMonto > 0) {
-      const estadoFinal = metodoPago === 'Tarjeta' ? propinaEstado : 'Contado';
       await Contabilidad.registrarPropina({
         colaborador, monto: propinaMonto, cliente,
-        estado: estadoFinal, metodoPago
+        estado: propinaEstado, metodoPago
       });
     }
 
@@ -1017,12 +1029,7 @@ function resetFormularioVenta() {
   document.getElementById('vServicioLabel').textContent = 'Selecciona un servicio';
   document.getElementById('vPropinaMonto').value = '';
   document.getElementById('vPropinaEstado').value = 'Contado';
-  document.querySelectorAll('#vPropinaEstadoWrap .toggle-opt[data-vpr-estado]').forEach(o => {
-    o.classList.remove('sel');
-    o.style.borderColor = '';
-  });
-  document.querySelector('#vPropinaEstadoWrap .toggle-opt[data-vpr-estado="Contado"]').classList.add('sel');
-  document.getElementById('vPropinaEstadoWrap').style.display = 'none';
+  document.getElementById('vPropinaEstadoIndicador').style.display = 'none';
   document.querySelectorAll('.toggle-opt[data-cat]').forEach(o => o.classList.remove('sel'));
   document.querySelector('.toggle-opt[data-cat="estilismo"]').classList.add('sel');
   categoriaActual = 'estilismo';
