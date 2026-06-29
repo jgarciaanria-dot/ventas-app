@@ -151,6 +151,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 .opt-list-item:active{background:rgba(201,169,110,.12);border-color:var(--gold);}
 .opt-list-item.todas{font-weight:600;color:var(--gold-dark);border-color:var(--gold);background:rgba(201,169,110,.08);}
 
+.pend-item{background:#fff;border-radius:8px;padding:9px 11px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.pend-item:last-child{margin-bottom:0;}
+.pend-info p{margin:0;}
+.pend-monto{font-size:13px;font-weight:600;color:var(--txt);}
+.pend-meta{font-size:11px;color:var(--txt-dim);margin-top:2px;}
+.btn-marcar-pagada{font-size:11px;font-weight:600;color:#1E8A4F;background:#E3F6EA;padding:6px 11px;border-radius:999px;border:none;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.btn-marcar-pagada:disabled{opacity:.5;}
+
 .mov-card{background:var(--card);border:0.5px solid var(--card-border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;}
 .mov-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
 .mov-servicio{font-size:13px;font-weight:600;color:var(--txt);}
@@ -234,6 +242,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
     <div class="fg">
       <label class="flbl">Costo final ($)</label>
       <input class="fi" id="vCosto" type="number" min="0" step="0.01" placeholder="0.00"/>
+    </div>
+    <div class="fg">
+      <label class="flbl">Propina (opcional)</label>
+      <input class="fi" id="vPropinaMonto" type="number" min="0" step="0.01" placeholder="0.00" oninput="actualizarVisibilidadEstadoPropinaVenta()"/>
+      <div id="vPropinaEstadoWrap" style="display:none;margin-top:8px;">
+        <div class="toggle-cat">
+          <div class="toggle-opt sel" data-vpr-estado="Contado" onclick="seleccionarEstadoPropinaVenta(this)" style="border-color:#1E9E5A;">Contado</div>
+          <div class="toggle-opt" data-vpr-estado="Por pagar" onclick="seleccionarEstadoPropinaVenta(this)">Por pagar</div>
+        </div>
+        <input type="hidden" id="vPropinaEstado" value="Contado"/>
+        <p style="font-size:11px;color:var(--txt-faint);margin-top:6px;line-height:1.5;">Si la propina fue con tarjeta y el negocio aún no recibe ese dinero, marca "Por pagar".</p>
+      </div>
     </div>
     <div class="fg">
       <label class="flbl">Método de pago</label>
@@ -418,6 +438,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
         </button>
         <input type="hidden" id="prColaborador"/>
       </div>
+      <div class="fg" id="prPendientesWrap" style="display:none;">
+        <div style="background:#FAEEDA;border:0.5px solid #EF9F27;border-radius:10px;padding:12px 13px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+            <i class="ti ti-clock" style="font-size:14px;color:#854F0B;" aria-hidden="true"></i>
+            <span style="font-size:11px;font-weight:600;color:#854F0B;text-transform:uppercase;letter-spacing:.04em;">Pendientes por pagar</span>
+          </div>
+          <div id="prListaPendientes"></div>
+        </div>
+      </div>
+      <p class="flbl" style="margin-top:4px;">Registrar nueva propina</p>
       <div class="fg">
         <label class="flbl">Monto ($)</label>
         <input class="fi" id="prMonto" type="number" min="0" step="0.01" placeholder="0.00"/>
@@ -692,6 +722,56 @@ function seleccionarColabPropina(nombre) {
   document.getElementById('prColaborador').value = nombre;
   document.getElementById('prColaboradorLabel').textContent = nombre;
   closeOv('ov-colab-propina');
+  cargarPropinasPendientes(nombre);
+}
+
+async function cargarPropinasPendientes(colaborador) {
+  const wrap = document.getElementById('prPendientesWrap');
+  const cont = document.getElementById('prListaPendientes');
+  wrap.style.display = 'block';
+  cont.innerHTML = '<p style="font-size:12px;color:var(--txt-faint);margin:0;">Cargando...</p>';
+
+  try {
+    const pendientes = await Contabilidad.getPropinasPendientes(colaborador);
+    if (!pendientes || pendientes.length === 0) {
+      wrap.style.display = 'none';
+      return;
+    }
+    cont.innerHTML = pendientes.map(p => `
+      <div class="pend-item" id="pend-fila-${p.fila}">
+        <div class="pend-info">
+          <p class="pend-monto">$${p.monto.toFixed(2)}</p>
+          <p class="pend-meta">${p.cliente || 'Sin nombre'} · ${p.fecha}</p>
+        </div>
+        <button class="btn-marcar-pagada" onclick="marcarPropinaPagada(${p.fila})">Marcar pagada</button>
+      </div>`).join('');
+  } catch (e) {
+    wrap.style.display = 'none';
+    console.error(e);
+  }
+}
+
+async function marcarPropinaPagada(fila) {
+  const item = document.getElementById('pend-fila-' + fila);
+  const btn = item ? item.querySelector('.btn-marcar-pagada') : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'Marcando...'; }
+
+  try {
+    await Contabilidad.marcarPropinaPagada({ fila });
+    showToast('Propina marcada como pagada');
+    if (item) item.remove();
+    const cont = document.getElementById('prListaPendientes');
+    if (cont && cont.children.length === 0) {
+      document.getElementById('prPendientesWrap').style.display = 'none';
+    }
+    if (document.getElementById('view-resumen').classList.contains('active')) {
+      aplicarFiltrosDashboard();
+    }
+  } catch (e) {
+    showToast('Error al marcar como pagada');
+    console.error(e);
+    if (btn) { btn.disabled = false; btn.textContent = 'Marcar pagada'; }
+  }
 }
 
 function seleccionarEstadoPropina(el) {
@@ -736,6 +816,29 @@ function seleccionarMetodoPago(el) {
   name.style.fontWeight = '700';
 
   document.getElementById('vMetodoPago').value = el.dataset.metodo;
+  actualizarVisibilidadEstadoPropinaVenta();
+}
+
+function actualizarVisibilidadEstadoPropinaVenta() {
+  const monto = parseFloat(document.getElementById('vPropinaMonto').value) || 0;
+  const metodoPago = document.getElementById('vMetodoPago').value;
+  const wrap = document.getElementById('vPropinaEstadoWrap');
+  if (monto > 0 && metodoPago === 'Tarjeta') {
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function seleccionarEstadoPropinaVenta(el) {
+  document.querySelectorAll('#vPropinaEstadoWrap .toggle-opt[data-vpr-estado]').forEach(o => {
+    o.classList.remove('sel');
+    o.style.borderColor = '';
+  });
+  el.classList.add('sel');
+  const estado = el.dataset.vprEstado;
+  document.getElementById('vPropinaEstado').value = estado;
+  el.style.borderColor = estado === 'Contado' ? '#1E9E5A' : '#D85A30';
 }
 
 function renderListaColabFiltro() {
@@ -869,6 +972,8 @@ async function registrarVenta() {
   const costo = parseFloat(document.getElementById('vCosto').value);
   const metodoPago = document.getElementById('vMetodoPago').value;
   const notas = document.getElementById('vNotas').value.trim();
+  const propinaMonto = parseFloat(document.getElementById('vPropinaMonto').value) || 0;
+  const propinaEstado = document.getElementById('vPropinaEstado').value;
 
   if (!colaborador || !servicio || !cliente || !costo) {
     showToast('Completa todos los campos requeridos');
@@ -883,7 +988,16 @@ async function registrarVenta() {
       cliente, colaborador, servicio, categoria: categoriaActual,
       costo, metodoPago, notas
     });
-    showToast('Venta registrada correctamente');
+
+    if (propinaMonto > 0) {
+      const estadoFinal = metodoPago === 'Tarjeta' ? propinaEstado : 'Contado';
+      await Contabilidad.registrarPropina({
+        colaborador, monto: propinaMonto, cliente,
+        estado: estadoFinal, metodoPago
+      });
+    }
+
+    showToast(propinaMonto > 0 ? 'Venta y propina registradas' : 'Venta registrada correctamente');
     resetFormularioVenta();
   } catch (e) {
     showToast('Error al registrar la venta');
@@ -901,6 +1015,14 @@ function resetFormularioVenta() {
   document.getElementById('vColaboradorLabel').textContent = 'Selecciona un socio';
   document.getElementById('vServicio').value = '';
   document.getElementById('vServicioLabel').textContent = 'Selecciona un servicio';
+  document.getElementById('vPropinaMonto').value = '';
+  document.getElementById('vPropinaEstado').value = 'Contado';
+  document.querySelectorAll('#vPropinaEstadoWrap .toggle-opt[data-vpr-estado]').forEach(o => {
+    o.classList.remove('sel');
+    o.style.borderColor = '';
+  });
+  document.querySelector('#vPropinaEstadoWrap .toggle-opt[data-vpr-estado="Contado"]').classList.add('sel');
+  document.getElementById('vPropinaEstadoWrap').style.display = 'none';
   document.querySelectorAll('.toggle-opt[data-cat]').forEach(o => o.classList.remove('sel'));
   document.querySelector('.toggle-opt[data-cat="estilismo"]').classList.add('sel');
   categoriaActual = 'estilismo';
@@ -949,16 +1071,14 @@ async function guardarPropina() {
   showLoader('Guardando propina...');
   try {
     await Contabilidad.registrarPropina({ colaborador, monto, cliente, estado, metodoPago });
-    closeOv('ov-propina');
     document.getElementById('prMonto').value = '';
     document.getElementById('prCliente').value = '';
-    document.getElementById('prColaborador').value = '';
-    document.getElementById('prColaboradorLabel').textContent = 'Selecciona un socio';
     document.querySelectorAll('#ov-propina .toggle-opt[data-estado]').forEach(o => o.classList.remove('sel'));
     document.querySelector('#ov-propina .toggle-opt[data-estado="Contado"]').classList.add('sel');
     document.getElementById('prEstado').value = 'Contado';
     document.getElementById('prEstadoNota').textContent = 'El socio ya recibió este dinero en mano. No se sumará al neto de la quincena.';
     showToast('Propina registrada');
+    await cargarPropinasPendientes(colaborador);
   } catch (e) {
     showToast('Error al registrar propina');
     console.error(e);
